@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>사진 게시판</title>
+    <link rel="stylesheet" href="gallery.css">
+</head>
+<body>
+    <div id="header-container"></div>
+    <h2>사진게시판</h2>
+    
+    
+    <div class="gallery" id="gallery">
+        <!-- 게시글이 표시될 영역 -->
+    </div>
+    <button id="writeButton">작성</button>
+    <!-- 페이지 번호 -->
+    <div class="pagination">
+        <a href="#">&laquo; 이전</a>
+        <a href="#">1</a>
+        <a href="#">2</a>
+        <a href="#">3</a>
+        <a href="#">4</a>
+        <a href="#">5</a>
+        <a href="#">다음 &raquo;</a>
+    </div>
+
+    <script>
+        const posts = [
+            { id: 1, title: "게시글 1", imgSrc: "image1.jpg" },
+            { id: 2, title: "게시글 2", imgSrc: "image2.jpg" },
+            { id: 3, title: "게시글 3", imgSrc: "image3.jpg" },
+            { id: 4, title: "게시글 4", imgSrc: "image4.jpg" },
+            { id: 5, title: "게시글 5", imgSrc: "image5.jpg" },
+            { id: 6, title: "게시글 6", imgSrc: "image6.jpg" },
+            { id: 7, title: "게시글 7", imgSrc: "image7.jpg" },
+            { id: 8, title: "게시글 8", imgSrc: "image8.jpg" }
+        ];
+
+        const gallery = document.getElementById('gallery');
+
+        posts.forEach(post => {
+            const postDiv = document.createElement('div');
+            postDiv.classList.add('post');
+
+            const img = document.createElement('img');
+            img.src = post.imgSrc;
+            img.alt = post.title;
+            img.addEventListener('click', () => {
+                window.location.href = `post.html?id=${post.id}`;
+            });
+
+            const title = document.createElement('h2');
+            title.textContent = post.title;
+            title.addEventListener('click', () => {
+                window.location.href = `post.html?id=${post.id}`;
+            });
+
+            postDiv.appendChild(img);
+            postDiv.appendChild(title);
+            gallery.appendChild(postDiv);
+        });
+
+        document.getElementById('writeButton').addEventListener('click', () => {
+            window.location.href = 'write2.html';
+        });
+
+    </script>
+    <script src="header.js"></script>
+</body>
+</html>
