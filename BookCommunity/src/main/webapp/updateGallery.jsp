@@ -10,11 +10,12 @@
     String id = null;
     String title = null;
     String content = null;
-    String author = (String) session.getAttribute("username"); // 로그인한 사용자 닉네임
+    String loggedInUsername = (String) session.getAttribute("username"); // 로그인한 사용자 username
     String imagePath = null;
 
     Connection conn = null;
     PreparedStatement pstmt = null;
+    ResultSet rs = null;
 
     try {
         // 파일 업로드 경로 설정
@@ -56,29 +57,49 @@
             return;
         }
 
-        // 데이터베이스 연결 및 업데이트
+        // 데이터베이스 연결
         Class.forName("com.mysql.cj.jdbc.Driver");
         conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/bookcom?useUnicode=true&characterEncoding=utf8", "root", "1116");
+
+        // 작성자 확인 쿼리
+        String checkAuthorSql = "SELECT author FROM pictures WHERE id = ?";
+        pstmt = conn.prepareStatement(checkAuthorSql);
+        pstmt.setInt(1, Integer.parseInt(id));
+        rs = pstmt.executeQuery();
+
+        String author = null;
+        if (rs.next()) {
+            author = rs.getString("author");
+        } else {
+            out.println("<script>alert('존재하지 않는 게시물입니다.'); location.href='gallerylist.jsp';</script>");
+            return;
+        }
+
+        // 관리자(admin) 또는 작성자 본인만 수정 가능
+        if (!"admin".equals(loggedInUsername) && !loggedInUsername.equals(author)) {
+            out.println("<script>alert('접근 권한이 없습니다.'); location.href='gallerylist.jsp';</script>");
+            return;
+        }
 
         // 기존 이미지 경로 가져오기
         if (imagePath == null) {
             String sqlSelect = "SELECT image_path FROM pictures WHERE id = ?";
             pstmt = conn.prepareStatement(sqlSelect);
             pstmt.setInt(1, Integer.parseInt(id));
-            ResultSet rs = pstmt.executeQuery();
+            rs = pstmt.executeQuery();
             if (rs.next()) {
                 imagePath = rs.getString("image_path");
             }
             pstmt.close();
         }
 
-        String sql = "UPDATE pictures SET title = ?, content = ?, image_path = ? WHERE id = ? AND author = ?";
+        // 데이터베이스에 게시물 수정
+        String sql = "UPDATE pictures SET title = ?, content = ?, image_path = ? WHERE id = ?";
         pstmt = conn.prepareStatement(sql);
         pstmt.setString(1, title);
         pstmt.setString(2, content);
         pstmt.setString(3, imagePath);
         pstmt.setInt(4, Integer.parseInt(id));
-        pstmt.setString(5, author);
 
         int result = pstmt.executeUpdate();
 
@@ -91,6 +112,7 @@
         e.printStackTrace();
         out.println("<script>alert('오류가 발생했습니다: " + e.getMessage() + "'); history.back();</script>");
     } finally {
+        if (rs != null) try { rs.close(); } catch (Exception e) {}
         if (pstmt != null) try { pstmt.close(); } catch (Exception e) {}
         if (conn != null) try { conn.close(); } catch (Exception e) {}
     }
